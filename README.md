@@ -1,66 +1,122 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Task Manager App
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Welcome to the Task Manager App! This application helps you manage your tasks efficiently.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+-   **Task Management:** Organize your tasks with ease.
+-   **User Authentication:** Securely log in to your account.
+-   **Task Status:** Mark tasks as completed, pending, or in-progress.
+-   **Priority Levels:** Assign priority levels to tasks.
+-   **Due Dates:** Set due dates for tasks to stay on track.
+-   **User-Friendly Interface:** Intuitive design for a seamless user experience.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Getting Started
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Prerequisites
 
-## Learning Laravel
+-   PHP (version 8.x)
+-   Laravel (version 8.x recommended)
+-   Composer
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Installation
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+1. Clone the repository:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    ```bash
+    https://github.com/Hsnmsri/taskmanager_backend.git
+    ```
 
-## Laravel Sponsors
+2. Install dependecies
+    ```bash
+    composer install
+    ```
+3. Create .env file
+    ```bash
+    cp .env.example .env
+    ```
+4. Create Mysql Database
+5. Set Database connection data on .env file
+6. Run Migration
+    ```bash
+    php artisan migrate
+    ```
+7. Run Application
+    ```bash
+    php artisan serve
+    ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# Project Details
 
-### Premium Partners
+The Task Manager is a Laravel-based application designed to help users manage their tasks efficiently. It includes various features such as task creation, categorization, and user settings.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## Database Diagram
 
-## Contributing
+![Database Diagram](documents/database_diagram.jpg)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Models
 
-## Code of Conduct
+### 1. AccessToken
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The `AccessToken` model represents the access tokens used for authentication and authorization in the application.
 
-## Security Vulnerabilities
+### 2. RecoveryToken
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+The `RecoveryToken` model is responsible for handling recovery tokens used in password recovery processes.
 
-## License
+### 3. Task
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The `Task` model represents individual tasks within the system. It includes attributes such as title, description, status, due date, etc.
+
+### 4. TaskCategories
+
+The `TaskCategories` model defines the categories to which tasks can be assigned. It helps in organizing and categorizing tasks.
+
+### 5. User
+
+The `User` model represents the application's users. It includes details such as username, email, password, etc.
+
+## Controllers
+
+### 1. TaskController
+
+The `TaskController` is responsible for managing tasks. It handles tasks CRUD operations, task categorization, and other related functionalities.
+
+### 2. UserController
+
+The `UserController` manages user-related settings and access tokens. It includes functionalities such as updating user information, managing tokens, etc.
+
+## Middleware
+
+### UserAuth Middleware
+
+The `UserAuth` middleware is used to check the validity of the user's access token in incoming requests. It ensures that only authenticated and authorized users can access protected routes.
+
+## Project Structure
+
+```plaintext
+project-root/
+│
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── TaskController.php
+│   │   │   └── UserController.php
+│   │   ├── Middleware/
+│   │   │   └── UserAuth.php
+│   │   └── ...
+│   ├── Models/
+│   │   ├── AccessToken.php
+│   │   ├── RecoveryToken.php
+│   │   ├── Task.php
+│   │   ├── TaskCategories.php
+│   │   └── User.php
+│   └── ...
+├── database/
+│   ├── migrations/
+│   └── ...
+├── routes/
+│   ├── web.php
+│   └── ...
+└── ...
+```
