@@ -120,3 +120,8 @@ project-root/
 │   └── ...
 └── ...
 ```
+## Postman Collection
+
+Download the Postman collection to explore and test the API:
+
+[Download Postman Collection](documents/Task%20Manager.postman_collection.json)
