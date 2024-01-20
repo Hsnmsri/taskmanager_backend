@@ -1,6 +1,8 @@
 {
+    "0": "server error",
     "1": "password not valid",
     "2": "bad request",
     "3": "requirement field not set",
-    "4": "requirement field is empty"
+    "4": "requirement field is empty",
+    "5": "save failed"
 }
