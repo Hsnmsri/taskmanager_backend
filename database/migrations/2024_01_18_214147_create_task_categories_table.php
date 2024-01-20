@@ -20,7 +20,7 @@ class CreateTaskCategoriesTable extends Migration
             $table->bigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->string('name');
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->timestamp('created_at');
             $table->timestamp('updated_at');
         });
