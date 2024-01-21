@@ -41,7 +41,8 @@ Welcome to the Task Manager App! This application helps you manage your tasks ef
     ```bash
     php artisan migrate
     ```
-7. Run Application
+7. Config Mail Server on .env file
+8. Run Application
     ```bash
     php artisan serve
     ```
@@ -120,8 +121,15 @@ project-root/
 │   └── ...
 └── ...
 ```
+
 ## Postman Collection
 
 Download the Postman collection to explore and test the API:
 
 [Download Postman Collection](documents/Task%20Manager.postman_collection.json)
+
+## Error Guide (for front-end developer)
+
+Download the error json file:
+
+[Download Error JSON File](documents/error_codes.json)
