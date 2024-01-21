@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use Exception;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Mail\RecoveryMail;
 use App\Models\AccessToken;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\RecoveryToken;
 use App\Classes\ResponseBodyBuilder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -29,6 +32,7 @@ class UserController extends Controller
             if (!Hash::check($request->password, $user->password)) {
                 return ResponseBodyBuilder::buildFailureResponse(1); // password invalid
             }
+            RecoveryToken::where("id", $user->id)->delete();
         }
 
         if ($user->count() == 0) {
@@ -49,6 +53,31 @@ class UserController extends Controller
         $user_token = $this->createUserAccessToken($user->id);
         $this->clearUserAccessToken($user->id);
         return ResponseBodyBuilder::buildSuccessResponse(null, ["user_id" => $user->id, "token" => $user_token]);
+    }
+
+    public function requestResetPassword(Request $request)
+    {
+        if (!$request->has("email")) {
+            return ResponseBodyBuilder::buildFailureResponse(3); // requirement field not set
+        }
+
+        if (empty($request->email)) {
+            return ResponseBodyBuilder::buildFailureResponse(4); // requirement field is empty
+        }
+
+        try {
+            $user = User::where("email", $request->email);
+            if ($user->count() != 0) {
+                $user = $user->first();
+                RecoveryToken::where("id", $user->id)->delete();
+                $recoveryTokenText = $this->createUserRecoveryToken($user->id);
+                // send mail
+                Mail::to($user->email)->send(new RecoveryMail($user->first_name, $recoveryTokenText));
+                return ResponseBodyBuilder::buildSuccessResponse(null);
+            }
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+        }
     }
 
     /**
@@ -109,6 +138,28 @@ class UserController extends Controller
             $user->last_loggedin_at = $user->updated_at;
             $user->update();
             return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+        }
+    }
+
+    /**
+     * Create a recovery token for a user to facilitate account recovery.
+     *
+     * @param  int  $userId  The ID of the user for whom the recovery token is created.
+     * @return string|mixed  The generated recovery token or a failure response.
+     */
+    private function createUserRecoveryToken($user_id)
+    {
+        try {
+            $recoveryToken = new RecoveryToken();
+            $recoveryToken->user_id = $user_id;
+            $recoveryToken->token = Str::random(env("TOKEN_STRING_LENGTH") * 2);
+            $recoveryToken->expire_at = Carbon::now()->addMinutes(env("USER_SESSION_LIFETIME"))->toDateTimeString();
+            if (!$recoveryToken->save()) {
+                return ResponseBodyBuilder::buildFailureResponse(5); // save failed
+            }
+            return $recoveryToken->token;
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage()); // server error
         }
     }
 }
