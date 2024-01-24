@@ -32,7 +32,7 @@ class UserController extends Controller
             if (!Hash::check($request->password, $user->password)) {
                 return ResponseBodyBuilder::buildFailureResponse(1); // password invalid
             }
-            RecoveryToken::where("id", $user->id)->delete();
+            RecoveryToken::where("user_id", $user->id)->delete();
         }
 
         if ($user->count() == 0) {
@@ -77,6 +77,57 @@ class UserController extends Controller
             }
         } catch (Exception $error) {
             return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+        }
+    }
+
+    public function resetPassword(Request $request)
+    {
+        if (!$request->has("token") || !$request->has("password") || !$request->has("retype_password")) {
+            return ResponseBodyBuilder::buildFailureResponse(3); // required fields not set
+        }
+
+        if (empty($request->token) || empty($request->password) || empty($request->retype_password)) {
+            return ResponseBodyBuilder::buildFailureResponse(4); // required fields is empty
+        }
+
+        try {
+            $user_id = RecoveryToken::where("token", $request->token);
+            if ($user_id->count() == 0) {
+                return ResponseBodyBuilder::buildFailureResponse(6); // token expired
+            }
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage()); // server error
+        }
+
+        $user_id = $user_id->first()->user_id;
+        $recoveryToken = RecoveryToken::where("user_id", $user_id)->get();
+        foreach ($recoveryToken as $key => $value) {
+            try {
+                if (Carbon::now()->gt(Carbon::parse($value->expire_time))) {
+                    $recoveryToken[$key]->delete();
+                }
+            } catch (Exception $error) {
+                return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+            }
+        }
+
+        try {
+            $user_id = RecoveryToken::where("token", $request->token);
+            if ($user_id->count() == 0) {
+                return ResponseBodyBuilder::buildFailureResponse(6); // token expired
+            }
+            $user_id = $user_id->first()->user_id;
+            if ($request->password != $request->retype_password) {
+                return ResponseBodyBuilder::buildFailureResponse(7); // password not match
+            }
+            $user = User::find($user_id);
+            $user->password = Hash::make($request->password);
+            if (!$user->update()) {
+                return ResponseBodyBuilder::buildFailureResponse(5); // save failed
+            }
+            return ResponseBodyBuilder::buildSuccessResponse();
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage()); // server error
         }
     }
 

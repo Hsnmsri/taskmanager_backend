@@ -4,5 +4,7 @@
     "2": "bad request",
     "3": "requirement field not set",
     "4": "requirement field is empty",
-    "5": "save failed"
+    "5": "save failed",
+    "6": "token expired",
+    "7": "password not match",
 }
