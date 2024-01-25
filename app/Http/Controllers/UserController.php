@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
+    #region Authetication
     public function login(Request $request)
     {
         if (!$request->has("email") || !$request->has("password")) {
@@ -32,7 +33,7 @@ class UserController extends Controller
             if (!Hash::check($request->password, $user->password)) {
                 return ResponseBodyBuilder::buildFailureResponse(1); // password invalid
             }
-            RecoveryToken::where("user_id", $user->id)->delete();
+            $user->recovery_tokens()->delete();
         }
 
         if ($user->count() == 0) {
@@ -130,7 +131,138 @@ class UserController extends Controller
             return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage()); // server error
         }
     }
+    #endregion
 
+    #region User
+    public function create(Request $request)
+    {
+        try {
+            if (User::where("email", $request->email)->count() != 0) {
+                return ResponseBodyBuilder::buildFailureResponse(8);
+            }
+            if ($request->password != $request->retype_password) {
+                return ResponseBodyBuilder::buildFailureResponse(7);
+            }
+            $user = new User();
+            $user->first_name = trim($request->first_name);
+            $user->last_name = trim($request->last_name);
+            $user->email = trim($request->email);
+            $user->role = trim($request->role);
+            $user->password = Hash::make($request->password);
+            $user->phone_number = Hash::make($request->phone_number);
+            if (!$user->save()) {
+                return ResponseBodyBuilder::buildFailureResponse(5);
+            }
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+        }
+        return ResponseBodyBuilder::buildSuccessResponse(null, $user);
+    }
+
+    public function update(Request $request)
+    {
+        try {
+            $user = User::find($request->user_id_current);
+            $user->first_name = trim($request->first_name);
+            $user->last_name = trim($request->last_name);
+            $user->phone_number = Hash::make($request->phone_number);
+            if (!$user->update()) {
+                return ResponseBodyBuilder::buildFailureResponse(5);
+            }
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+        }
+        return ResponseBodyBuilder::buildSuccessResponse(null, $user);
+    }
+
+    public function delete(Request $request)
+    {
+        try {
+            $user = User::find($request->user_id_current);
+            $user->access_tokens()->delete();
+            $user->recovery_tokens()->delete();
+            $user->task_categories()->delete();
+            $user->tasks->delete();
+            if (!$user->delete()) {
+                return ResponseBodyBuilder::buildFailureResponse(5);
+            }
+            return ResponseBodyBuilder::buildSuccessResponse(null);
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        try {
+            $user = User::find($request->user_id);
+            if (!Hash::check($request->password, $user->password)) {
+                return ResponseBodyBuilder::buildFailureResponse(1);
+            }
+            if ($request->new_password != $request->new_retype_password) {
+                return ResponseBodyBuilder::buildFailureResponse(7);
+            }
+            $user->password = Hash::make($request->new_password);
+            if (!$user->update()) {
+                return ResponseBodyBuilder::buildSuccessResponse(5);
+            }
+            $user->access_tokens()->delete();
+            $user->recovery_tokens()->delete();
+            return ResponseBodyBuilder::buildSuccessResponse(null);
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+        }
+    }
+
+    public function changeEmail(Request $request)
+    {
+        try {
+            if (User::where("email", $request->new_email)->count() != 0) {
+                return ResponseBodyBuilder::buildFailureResponse(8);
+            }
+            $user = User::find($request->user_id);
+            $user->email = trim($request->new_email);
+            if (!$user->update()) {
+                return ResponseBodyBuilder::buildSuccessResponse(5);
+            }
+            $user->access_tokens()->delete();
+            $user->recovery_tokens()->delete();
+            return ResponseBodyBuilder::buildSuccessResponse(null);
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+        }
+    }
+
+    public function getData(Request $request)
+    {
+        try {
+            $user = User::find($request->user_id_current);
+            if (is_null($user)) {
+                return ResponseBodyBuilder::buildFailureResponse(9);
+            }
+            unset($user->password);
+            unset($user->updated_at);
+            $user_categories = $user->task_categories()->get();
+            $user_tasks = $user->tasks()->get();
+            return ResponseBodyBuilder::buildSuccessResponse(null, ["user" => $user, "task_categories" => $user_categories, "tasks" => $user_tasks]);
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0);
+        }
+    }
+
+    public function getList(Request $request)
+    {
+        try {
+            $user = User::all();
+            return ResponseBodyBuilder::buildSuccessResponse(null, $user);
+        } catch (Exception $error) {
+            return ResponseBodyBuilder::buildFailureResponse(0);
+        }
+    }
+    #endregion
+
+
+    #region Privates
     /**
      * Create a new access token for the user.
      *
@@ -213,4 +345,5 @@ class UserController extends Controller
             return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage()); // server error
         }
     }
+    #endregion
 }

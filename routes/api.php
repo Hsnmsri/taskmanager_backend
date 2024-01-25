@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\UserAuthentication;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,8 +27,9 @@ Route::prefix('user')->group(function () {
     Route::post('update', [UserController::class, 'update']);
     Route::post('delete', [UserController::class, 'delete']);
     Route::post('change_password', [UserController::class, 'changePassword']);
-    Route::get('data', [UserController::class, 'getData']);
-    Route::get('list', [UserController::class, 'getList']);
+    Route::post('change_email', [UserController::class, 'changeEmail']);
+    Route::post('data', [UserController::class, 'getData']);
+    Route::post('list', [UserController::class, 'getList']);
 });
 
 // Task
@@ -37,7 +39,7 @@ Route::prefix('task')->group(function () {
     Route::post('delete', [TaskController::class, 'delete']);
     Route::post('done', [TaskController::class, 'taskDone']);
     Route::post('restore', [TaskController::class, 'taskRestore']);
-    Route::get('list', [TaskController::class, 'getList']);
+    Route::post('list', [TaskController::class, 'getList']);
 });
 
 // Categories
