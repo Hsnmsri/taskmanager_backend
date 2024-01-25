@@ -261,7 +261,6 @@ class UserController extends Controller
     }
     #endregion
 
-
     #region Privates
     /**
      * Create a new access token for the user.
