@@ -131,6 +131,24 @@ class UserController extends Controller
             return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage()); // server error
         }
     }
+
+    public function checkUserToken(Request $request)
+    {
+        $accessTokens = AccessToken::where("user_id", $request->user_id)->get();
+        foreach ($accessTokens as $key => $value) {
+            try {
+                if (Carbon::now()->gt(Carbon::parse($value->expire_time))) {
+                    $accessTokens[$key]->delete();
+                }
+            } catch (Exception $error) {
+                return response()->json(ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage()));
+            }
+        }
+        if (AccessToken::where("user_id", $request->user_id)->where("token", $request->token)->count() == 0) {
+            return ResponseBodyBuilder::buildFailureResponse(6);
+        }
+        return ResponseBodyBuilder::buildSuccessResponse(null);
+    }
     #endregion
 
     #region User
