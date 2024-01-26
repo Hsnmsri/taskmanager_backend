@@ -27,11 +27,11 @@ class UserAuthentication
                     $accessTokens[$key]->delete();
                 }
             } catch (Exception $error) {
-                return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
+                return response()->json(ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage()));
             }
         }
-        if (AccessToken::where("user_id", $request->user_id)::where("token", $request->token)->count() == 0) {
-            return ResponseBodyBuilder::buildFailureResponse(6);
+        if (AccessToken::where("user_id", $request->user_id)->where("token", $request->token)->count() == 0) {
+            return response()->json(ResponseBodyBuilder::buildFailureResponse(6));
         }
         return $next($request);
     }
