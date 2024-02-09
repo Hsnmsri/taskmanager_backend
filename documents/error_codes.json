@@ -1,0 +1,12 @@
+{
+    "0": "server error",
+    "1": "password not valid",
+    "2": "bad request",
+    "3": "requirement field not set",
+    "4": "requirement field is empty",
+    "5": "save or update failed",
+    "6": "token expired || authentication failed",
+    "7": "password not match",
+    "8": "email has exist",
+    "9": "user not found"
+}
