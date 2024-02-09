@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\RecoveryToken;
 use App\Classes\ResponseBodyBuilder;
+use App\Models\TaskCategories;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
@@ -76,6 +77,7 @@ class UserController extends Controller
                 Mail::to($user->email)->send(new RecoveryMail($user->first_name, $recoveryTokenText));
                 return ResponseBodyBuilder::buildSuccessResponse(null);
             }
+            return ResponseBodyBuilder::buildSuccessResponse(null);
         } catch (Exception $error) {
             return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage());
         }
@@ -126,7 +128,8 @@ class UserController extends Controller
             if (!$user->update()) {
                 return ResponseBodyBuilder::buildFailureResponse(5); // save failed
             }
-            return ResponseBodyBuilder::buildSuccessResponse();
+            $user->recovery_tokens()->delete();
+            return ResponseBodyBuilder::buildSuccessResponse(null);
         } catch (Exception $error) {
             return ResponseBodyBuilder::buildFailureResponse(0, $error->getMessage()); // server error
         }
@@ -183,7 +186,7 @@ class UserController extends Controller
             $user = User::find($request->user_id_current);
             $user->first_name = trim($request->first_name);
             $user->last_name = trim($request->last_name);
-            $user->phone_number = Hash::make($request->phone_number);
+            $user->phone_number = $request->phone_number;
             if (!$user->update()) {
                 return ResponseBodyBuilder::buildFailureResponse(5);
             }
@@ -217,7 +220,7 @@ class UserController extends Controller
             if (!Hash::check($request->password, $user->password)) {
                 return ResponseBodyBuilder::buildFailureResponse(1);
             }
-            if ($request->new_password != $request->new_retype_password) {
+            if ($request->new_password != $request->retype_new_password) {
                 return ResponseBodyBuilder::buildFailureResponse(7);
             }
             $user->password = Hash::make($request->new_password);
@@ -262,6 +265,9 @@ class UserController extends Controller
             unset($user->updated_at);
             $user_categories = $user->task_categories()->get();
             $user_tasks = $user->tasks()->get();
+            foreach ($user_tasks as $key => $value) {
+                $user_tasks[$key]->category_name =  TaskCategories::find($user_tasks[$key]->category_id)->name;
+            }
             return ResponseBodyBuilder::buildSuccessResponse(null, ["user" => $user, "task_categories" => $user_categories, "tasks" => $user_tasks]);
         } catch (Exception $error) {
             return ResponseBodyBuilder::buildFailureResponse(0);
